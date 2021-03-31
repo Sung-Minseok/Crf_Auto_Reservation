@@ -1,63 +1,43 @@
-import requests
-from bs4 import BeautifulSoup as bs
 from selenium import webdriver
-
-
 import sys
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QWidget, QDesktopWidget, QLineEdit, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QDialog
-from PyQt5.QtCore import Qt, QThread
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 from PyQt5.uic import loadUi
 
-
-url = 'https://crf.cau.ac.kr/2016/pages/reservation/view.php?eNum=35&searchCampus=1'
-login_url = 'https://crf.cau.ac.kr/2016/pages/etc/login_pro.php'
-
-loginData = {
-    'memberId': '',
-    'memberPwd': ''
-}
-response = requests.get(login_url,params=loginData)
-print('로그인')
-print(response.status_code)
-
-def loginCheck(text):
-    if text == None:
-        return True
-    else:
-        return False
+import crf_main
 
 
-html = response.text
-soup = bs(html, 'html.parser')
-
-print(soup.select_one('#idBtnLogin'))
-
-
-if response.status_code==200:
-    print('='*30)
-    print('success!!!')
-else:
-    print('='*30)
-    print('status_code : ',response.status_code)
-
-
-class StartThread(QThread):
+class StartThread(QThread, QObject):                     #Threading setting
+    #siganl definition
     signal_AddLogMessage = pyqtSignal(str)
-    
+    signal_StopFunction = pyqtSignal()
+
     def __init__(self, parent):
         super().__init__()
 
         self.main = parent
+
+        self.isRun = False
         self.id = None
         self.pw = None
+        self.refreshTime = 180
+        self.midnightCheck = False
     
     def InitUserData(self, user_id, user_pw):
         self.id = user_id
         self.pw = user_pw
     
+    def InitRefreshTime(self, refresh_time):
+        self.refreshTime = refresh_time
+    
+    def InitCheck(self, state):
+        self.midnightCheck = state
+
     def run(self):
-        mainFunc(self)
+        crf_main.mainFunc(self)
+    def stop(self):
+        self.terminate()
 
 
 
@@ -68,11 +48,15 @@ class Login(QDialog):
         #Thread
         self.th = StartThread(self)
         self.th.signal_AddLogMessage.connect(self.AddLogMessage)
+        self.th.signal_StopFunction.connect(self.StopFunction)
         
         #UI 연결
         loadUi('login.ui', self)
         self.loginButton.clicked.connect(self.Loginfunction)
         self.logClearButton.clicked.connect(self.ClearLog)
+        self.runButton.clicked.connect(self.RunFunction)
+        self.stopButton.clicked.connect(self.StopFunction)
+        self.midnightCheck.stateChanged.connect(self.MidnightCheck)
 
 
     def Loginfunction(self):
@@ -82,14 +66,25 @@ class Login(QDialog):
         if not id or not pw:
             self.AddLogMessage('ID, PW를 입력해주세요.')
         else:
-            loginData['memberId'] = id
-            loginData['memberPwd'] = pw
             self.th.InitUserData(id, pw)    #id, pw저장
-            self.AddLogMessage(id,'님 로그인 성공')
-            print(soup.select_one('#idBtnLogin'))
-            isLogin = loginCheck(soup.select_one('#idBtnLogin'))
-            print(isLogin)
-        print('id: ',id,'---pw : ',pw)
+            self.AddLogMessage('로그인 정보 저장완료')
+
+    def SetRefreshTime(self):
+        refresh_time = self.refreshTimeInput.text()
+        if not refresh_time:
+            self.AddLogMessage('새로고침 시간이 기본(180초)으로 설정되었습니다.')
+            self.th.InitRefreshTime(180)
+        else:
+            self.AddLogMessage('새로고침 시간이 '+refresh_time+'초로 설정되었습니다.')
+            self.th.InitRefreshTime(refresh_time)
+
+    def MidnightCheck(self,state):
+        if state == Qt.Checked:
+            self.th.InitCheck(True)
+            self.AddLogMessage('미구현 ㅅㄱ')
+        else:
+            self.th.InitCheck(False)
+            self.AddLogMessage('미구현 ㅅㄱ')
 
     def ClearLog(self):
         self.logBox.clear()
@@ -98,8 +93,32 @@ class Login(QDialog):
     def AddLogMessage(self, text):
         self.logBox.append(text)
 
+    def RunFunction(self):
+        if not self.th.isRun:
+            refresh_time = self.refreshTimeInput.text()
+            if not refresh_time:
+                self.AddLogMessage('새로고침 시간이 기본(180초)으로 설정되었습니다.')
+                self.th.InitRefreshTime(180)
+            else:
+                self.AddLogMessage('새로고침 시간이 '+refresh_time+'초로 설정되었습니다.')
+                self.th.InitRefreshTime(refresh_time)
+            self.th.isRun = True
+            self.th.start()
+            self.runButton.setDisabled(True)
+            self.stopButton.setDisabled(False)
+            self.midnightCheck.setDisabled(True)
+            self.loginButton.setDisabled(True)
+            self.AddLogMessage('프로그램 실행..')
 
-
+    def StopFunction(self):
+         if self.th.isRun:
+            self.th.isRun = False
+            self.th.stop()
+            self.stopButton.setDisabled(True)
+            self.runButton.setDisabled(False)
+            self.midnightCheck.setDisabled(False)
+            self.loginButton.setDisabled(False)
+            self.AddLogMessage('프로그램 종료.')
 
 app=QApplication(sys.argv)
 mainWindow=Login()

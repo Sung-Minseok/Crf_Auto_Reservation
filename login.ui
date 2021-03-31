@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>스무스 자동신청</string>
   </property>
   <widget class="QFrame" name="loginFrame">
    <property name="geometry">
@@ -139,9 +139,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>299</y>
+     <y>369</y>
      <width>340</width>
-     <height>191</height>
+     <height>121</height>
     </rect>
    </property>
    <property name="frameShape">
@@ -150,12 +150,51 @@
    <property name="frameShadow">
     <enum>QFrame::Raised</enum>
    </property>
+   <widget class="QCheckBox" name="midnightCheck">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>70</y>
+      <width>171</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>자정 직전에 돌릴 때 체크</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="refreshTimeInput">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>30</y>
+      <width>41</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>30</y>
+      <width>241</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>새로고침 간격 입력, 미입력시 180 (초) : </string>
+    </property>
+   </widget>
   </widget>
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>280</y>
+     <y>350</y>
      <width>151</width>
      <height>16</height>
     </rect>
@@ -231,12 +270,87 @@
     </property>
    </widget>
   </widget>
+  <widget class="QPushButton" name="runButton">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>270</y>
+     <width>151</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(253, 250, 255);
+</string>
+   </property>
+   <property name="text">
+    <string>실행</string>
+   </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="autoDefault">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="stopButton">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>270</y>
+     <width>151</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(253, 250, 255);
+</string>
+   </property>
+   <property name="text">
+    <string>실행중지</string>
+   </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="autoDefault">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_5">
+   <property name="geometry">
+    <rect>
+     <x>520</x>
+     <y>500</y>
+     <width>301</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(124, 123, 125);</string>
+   </property>
+   <property name="text">
+    <string>Copyright © 2021 sms0430. All rights reserved.</string>
+   </property>
+  </widget>
   <zorder>logFrame</zorder>
   <zorder>loginFrame</zorder>
   <zorder>label</zorder>
   <zorder>frame_2</zorder>
   <zorder>label_2</zorder>
   <zorder>label_3</zorder>
+  <zorder>runButton</zorder>
+  <zorder>stopButton</zorder>
+  <zorder>label_5</zorder>
  </widget>
  <resources/>
  <connections/>

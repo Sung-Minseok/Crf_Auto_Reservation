@@ -119,6 +119,7 @@ class Login(QDialog):
             self.midnightCheck.setDisabled(False)
             self.loginButton.setDisabled(False)
             self.AddLogMessage('프로그램 종료.')
+            
 
 app=QApplication(sys.argv)
 mainWindow=Login()

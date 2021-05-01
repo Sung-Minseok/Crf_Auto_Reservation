@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>스무스 자동신청</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QFrame" name="loginFrame">
    <property name="geometry">
     <rect>
@@ -150,19 +153,6 @@
    <property name="frameShadow">
     <enum>QFrame::Raised</enum>
    </property>
-   <widget class="QCheckBox" name="midnightCheck">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>70</y>
-      <width>171</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>자정 직전에 돌릴 때 체크</string>
-    </property>
-   </widget>
    <widget class="QLineEdit" name="refreshTimeInput">
     <property name="geometry">
      <rect>
@@ -187,6 +177,32 @@
     </property>
     <property name="text">
      <string>새로고침 간격 입력, 미입력시 180 (초) : </string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="dateSelectInput">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>70</y>
+      <width>41</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>70</y>
+      <width>241</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>특정 날짜 선택시 입력 (예시  - 5.12)     :</string>
     </property>
    </widget>
   </widget>

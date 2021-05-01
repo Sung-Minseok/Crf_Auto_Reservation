@@ -21,6 +21,7 @@ class StartThread(QThread, QObject):                     #Threading setting
         self.isRun = False
         self.id = None
         self.pw = None
+        self.date_selected = None
         self.refreshTime = 180
         self.midnightCheck = False
     
@@ -31,12 +32,16 @@ class StartThread(QThread, QObject):                     #Threading setting
     def InitRefreshTime(self, refresh_time):
         self.refreshTime = refresh_time
     
+    def InitDate(self, date_selected):
+        self.date_selected = date_selected
+
     def InitCheck(self, state):
         self.midnightCheck = state
 
     def run(self):
         crf_main.mainFunc(self)
     def stop(self):
+        # crf_main.mainFunc().stopFunc()
         self.terminate()
 
 
@@ -56,7 +61,7 @@ class Login(QDialog):
         self.logClearButton.clicked.connect(self.ClearLog)
         self.runButton.clicked.connect(self.RunFunction)
         self.stopButton.clicked.connect(self.StopFunction)
-        self.midnightCheck.stateChanged.connect(self.MidnightCheck)
+        
 
 
     def Loginfunction(self):
@@ -78,14 +83,6 @@ class Login(QDialog):
             self.AddLogMessage('새로고침 시간이 '+refresh_time+'초로 설정되었습니다.')
             self.th.InitRefreshTime(refresh_time)
 
-    def MidnightCheck(self,state):
-        if state == Qt.Checked:
-            self.th.InitCheck(True)
-            self.AddLogMessage('미구현 ㅅㄱ')
-        else:
-            self.th.InitCheck(False)
-            self.AddLogMessage('미구현 ㅅㄱ')
-
     def ClearLog(self):
         self.logBox.clear()
         self.AddLogMessage('로그 청소 완료.')
@@ -96,6 +93,12 @@ class Login(QDialog):
     def RunFunction(self):
         if not self.th.isRun:
             refresh_time = self.refreshTimeInput.text()
+            date_selected = self.dateSelectInput.text()
+            if not date_selected:
+                self.AddLogMessage('지정 날짜가 없습니다. 전체 검색을 시작합니다.')
+            else:
+                self.AddLogMessage('지정 날짜가 설정되었습니다 : '+date_selected)
+                self.th.InitDate(date_selected)
             if not refresh_time:
                 self.AddLogMessage('새로고침 시간이 기본(180초)으로 설정되었습니다.')
                 self.th.InitRefreshTime(180)
@@ -106,7 +109,6 @@ class Login(QDialog):
             self.th.start()
             self.runButton.setDisabled(True)
             self.stopButton.setDisabled(False)
-            self.midnightCheck.setDisabled(True)
             self.loginButton.setDisabled(True)
             self.AddLogMessage('프로그램 실행..')
 
@@ -116,16 +118,15 @@ class Login(QDialog):
             self.th.stop()
             self.stopButton.setDisabled(True)
             self.runButton.setDisabled(False)
-            self.midnightCheck.setDisabled(False)
             self.loginButton.setDisabled(False)
             self.AddLogMessage('프로그램 종료.')
+            
 
-app=QApplication(sys.argv)
-mainWindow=Login()
-widget=QtWidgets.QStackedWidget()
-widget.addWidget(mainWindow)
-widget.setFixedWidth(837)
-widget.setFixedHeight(518)
-widget.show()
-app.exec_()
+if __name__ == "__main__":
+    app=QApplication(sys.argv)
+    mainWindow=Login()
+    mainWindow.setFixedWidth(837)
+    mainWindow.setFixedHeight(518)
+    mainWindow.show()
+    app.exec_()
 

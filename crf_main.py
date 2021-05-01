@@ -45,7 +45,7 @@ def Login(self, driver, id, pw):
         self.signal_StopFunction.emit()
         return
 
-def SelectDate(self,driver):
+def SearchTotalDate(self,driver):
     try: 
         date = None
         _time = None
@@ -53,8 +53,13 @@ def SelectDate(self,driver):
         nbspCheck = None
         holyDayCheck = None
         today_og = datetime.datetime.now()
-        today = today_og.strftime('%m.%d')[1:]
-        self.signal_AddLogMessage.emit(today)
+        today = today_og.strftime('%m.%d')
+        if today[3] == '0':
+            today = today[1:3]+today[4]
+        else:
+            today = today[1:]
+        nextday = today[:2] + str(int(today[2:])+1)
+        yesterday = today[:2] + str(int(today[2:])-1)
         self.signal_AddLogMessage.emit('신청가능 시간 검색중...')
 
         for i in range(2,5):        #달력에서 세로줄(1주차~3주차)
@@ -66,11 +71,12 @@ def SelectDate(self,driver):
                 if holyDayCheck =='' or holyDayCheck == ' ' or '예약불가' in holyDayCheck:
                     continue
 
-
                 date_button= driver.find_element_by_xpath('//*[@id="calendar_month"]/table/tbody/tr/td/table[1]/tbody/tr['+str(i)+']/td['+str(j)+']/table/tbody/tr[1]/td/a')    #날짜
                 date = date_button.text 
-                #당일, 비어있는 날짜 넘김
-                if date==today or date==' ':
+            
+                #당일, 내일,  비어있는 날짜 넘김
+                if date==today or date == nextday or date == yesterday or date==' ':
+                    self.signal_AddLogMessage.emit('날짜 넘김')
                     continue
                 dateIdx = 2
                 _time_next = driver.find_element_by_xpath('//*[@id="calendar_month"]/table/tbody/tr/td/table[1]/tbody/tr['+str(i)+']/td['+str(j)+']/table/tbody/tr['+str(dateIdx)+']/td/span').text
@@ -89,6 +95,7 @@ def SelectDate(self,driver):
                     eDate = _time_next[:5]
                     if sDate != eDate:
                         self.signal_AddLogMessage.emit('신청가능 시간대 발견, 날짜 선택중..')
+                        self.signal_AddLogMessage.emit('날짜 : '+date)
                         self.signal_AddLogMessage.emit('시간 : '+sDate+' ~ '+eDate)
                         
                         if sDate[0] == '0':             #시작, 종료 시간 세팅
@@ -133,12 +140,71 @@ def SelectDate(self,driver):
         self.signal_StopFunction.emit()
         return
                     
+def SelectDate(self,driver,date_selected):
+    try: 
+        date = None
+        _time = None
+        _time_next = None
+        nbspCheck = None
+        holyDayCheck = None
+        today_og = datetime.datetime.now()
+        today = today_og.strftime('%m.%d')
+        if today[3] == '0':
+            today = today[1:3]+today[4]
+        else:
+            today = today[1:]
+        nextday = today[:2] + str(int(today[2:])+1)
+        yesterday = today[:2] + str(int(today[2:])-1)
+        self.signal_AddLogMessage.emit('입력된 날짜 신청 대기중...'+date_selected)
 
-                
+        for i in range(2,5):        #달력에서 세로줄(1주차~3주차)
+            for j in range(1,8):    #달력에서 가로줄(일1~토7)
+                #공휴일, 예약불가일 넘김
+                if j == 1 or j == 7:
+                    continue
+                holyDayCheck = driver.find_element_by_xpath('//*[@id="calendar_month"]/table/tbody/tr/td/table[1]/tbody/tr['+str(i)+']/td['+str(j)+']').text  #날짜칸이 빈칸?
+                if holyDayCheck =='' or holyDayCheck == ' ' or '예약불가' in holyDayCheck:
+                    continue
+
+                date_button= driver.find_element_by_xpath('//*[@id="calendar_month"]/table/tbody/tr/td/table[1]/tbody/tr['+str(i)+']/td['+str(j)+']/table/tbody/tr[1]/td/a')    #날짜
+                date = date_button.text 
+
+                #특정 날짜 설정
+                if date != date_selected:
+                    # self.signal_AddLogMessage.emit('5.12 아님 날짜 넘김')
+                    continue
+                else:
+                    date_button.click() #날짜 선택
+                    self.signal_AddLogMessage.emit('시간 선택중..')                    
+                    driver.find_element_by_xpath('//*[@id="reserveSdate2"]/option[text()=16]').click() #시작, 끝 시간 선택
+                    driver.find_element_by_xpath('//*[@id="reserveSdate3"]/option[text()=0]').click()
+                    driver.find_element_by_xpath('//*[@id="reserveEdate2"]/option[text()=18]').click()
+                    driver.find_element_by_xpath('//*[@id="reserveEdate3"]/option[text()=0]').click()
+                    driver.find_element_by_xpath('//*[@id="isDirect"]').click() #직접사용 체크
+
+                    self.signal_AddLogMessage.emit('신청버튼 클릭..')
+                    driver.find_element_by_xpath('//*[@id="calendar_month"]/table/tbody/tr/td/div[9]/a[1]').click() #사용신청 클릭
+                    popup2 = Alert(driver)  #팝업 처리
+                    popup2.accept()
+                    time.sleep(1)
+                    popup3 = Alert(driver)
+                    self.signal_AddLogMessage.emit(popup3.text)
+                    popup3.accept()
+    except:
+        driver.quit()
+        self.signal_StopFunction.emit()
+        return
+def stopFunc(self, driver):
+    try:
+        driver.quit()
+    except:
+        driver.quit()
+        return
 
 def mainFunc(self):
     user_id = self.id
     user_pw = self.pw
+    date_selected = self.date_selected
 
     #드라이버 로드
     try: 
@@ -158,11 +224,20 @@ def mainFunc(self):
 
     #예약
     try:
-        while True:
-            SelectDate(self,driver)
-            time.sleep(3)
-            driver.refresh()
-            time.sleep(int(self.refreshTime))
+        if not date_selected:
+            self.signal_AddLogMessage.emit('전체 검색 실행..')
+            while True:
+                SearchTotalDate(self,driver)
+                time.sleep(1)
+                driver.refresh()
+                time.sleep(int(self.refreshTime))
+        else:
+            self.signal_AddLogMessage.emit('입력된 날짜 검색 : '+date_selected)
+            while True:
+                SelectDate(self,driver,date_selected)
+                time.sleep(1)
+                driver.refresh()
+                time.sleep(int(self.refreshTime))
     except:
         self.signal_AddLogMessage.emit('문제가 발생했습니다, 프로그램 종료.')
         driver.quit()
